@@ -1,33 +1,35 @@
 # claude-slack-bridge 🤖
 
-Control [Claude Code](https://docs.anthropic.com/claude-code) from Slack. Send instructions from your phone or any device — Claude works on your local machine.
+SlackからMacのClaude Codeを操作できるボットです。スマホや外出先からClaudeに指示を出せます。
 
-## Demo
+Control [Claude Code](https://docs.anthropic.com/claude-code) on your Mac from Slack. Send instructions from your phone or any device.
+
+## デモ / Demo
 
 ```
-You:  .claude Create a React Todo app
-Bot:  ⏳ Got it! Working...
-Bot:  ✅ Done! Created src/TodoApp.tsx
+あなた: .claude ReactのTodoアプリを作って
+Bot:    ⏳ 承りました！作業中です...
+Bot:    ✅ 完了！src/TodoApp.tsx を作成しました
 ```
 
-## Features
+## 特徴 / Features
 
-- 💬 Control Claude Code from Slack
-- 📁 Navigate your local filesystem via Slack
-- 📄 Read file contents from Slack
-- 💾 Remembers last working directory across restarts
-- 🔄 Auto-restarts on crash (via launchd / systemd)
-- 🔍 Auto-detects Claude path (nvm, homebrew, etc.)
+- 💬 SlackからClaude Codeに指示を出せる
+- 📁 Slackからローカルのファイルシステムを操作できる
+- 📄 Slackからファイルの内容を読める
+- 💾 再起動後も作業ディレクトリを記憶
+- 🔄 クラッシュ時に自動再起動（launchd / systemd）
+- 🔍 Claudeのパスを自動検出（nvm, Homebrew など）
 
-## Requirements
+## 必要なもの / Requirements
 
 - Node.js v20+
 - [Claude Code](https://docs.anthropic.com/claude-code) (`npm install -g @anthropic-ai/claude-code`)
-- A Slack workspace where you can create apps
+- Appを作成できるSlackワークスペース
 
-## Quick Start
+## セットアップ / Setup
 
-### 1. Clone
+### 1. クローン / Clone
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/claude-slack-bridge.git
@@ -35,25 +37,25 @@ cd claude-slack-bridge
 npm install
 ```
 
-### 2. Create a Slack App
+### 2. Slack Appの作成 / Create a Slack App
 
-1. Go to https://api.slack.com/apps → **Create New App** → **From scratch**
-2. Under **OAuth & Permissions** → **Scopes** → add:
+1. https://api.slack.com/apps を開き **Create New App** → **From scratch** をクリック
+2. **OAuth & Permissions** → **Scopes** に以下を追加：
    - `channels:history`
    - `chat:write`
    - `channels:read`
-3. Click **Install to Workspace**
-4. Copy the **Bot User OAuth Token** (`xoxb-...`)
-5. Invite the bot to your channel: `/invite @your-bot-name`
-6. Get your channel ID (right-click channel → **Copy Link** → last part of URL)
+3. **Install to Workspace** をクリック
+4. **Bot User OAuth Token**（`xoxb-...`）をコピー
+5. ボットをチャンネルに招待：`/invite @ボット名`
+6. チャンネルIDを取得（チャンネルを右クリック → **リンクをコピー** → URLの末尾）
 
-### 3. Configure
+### 3. 設定ファイルの作成 / Configure
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+`.env` を編集：
 
 ```env
 SLACK_BOT_TOKEN=xoxb-your-token-here
@@ -62,66 +64,68 @@ POLL_INTERVAL_MS=5000
 OUTPUT_DIR=~/Desktop
 ```
 
-### 4. Run
+### 4. 起動 / Run
 
 ```bash
 npm run build
 npm start
 ```
 
-### 5. Auto-start on login (macOS)
+### 5. ログイン時に自動起動（macOS）/ Auto-start on login (macOS)
 
 ```bash
 chmod +x scripts/setup-launchd.sh
 ./scripts/setup-launchd.sh
 ```
 
-### 6. Auto-start on login (Linux)
+### 6. ログイン時に自動起動（Linux）/ Auto-start on login (Linux)
 
 ```bash
 chmod +x scripts/setup-systemd.sh
 ./scripts/setup-systemd.sh
 ```
 
-## Commands
+## コマンド一覧 / Commands
 
-| Command | Description |
-|---------|-------------|
-| `.claude <prompt>` | Send instructions to Claude Code |
-| `.ls [path]` | List directory contents |
-| `.cd <path>` | Change working directory |
-| `.cd ..` | Go up one directory |
-| `.pwd` | Show current directory |
-| `.read <file> [page]` | Read file contents (paginated) |
-| `.h` / `.help` | Show this command list |
+| コマンド | 説明 |
+|---------|------|
+| `.claude <指示>` | Claude Codeに指示を送る |
+| `.ls [パス]` | ディレクトリ一覧を表示 |
+| `.cd <パス>` | ディレクトリを移動 |
+| `.cd ..` | 一つ上のディレクトリへ移動 |
+| `.pwd` | 現在のディレクトリを表示 |
+| `.read <ファイル> [ページ]` | ファイルの内容を表示（ページ送り対応） |
+| `.h` / `.help` | コマンド一覧を表示 |
 
-## Examples
+## 使用例 / Examples
 
 ```
-.claude Create an Express API with CRUD endpoints for users
-.claude Add TypeScript types to all files in src/
-.claude Fix the bug in components/Header.tsx
+.claude ReactのTodoアプリを作って
+.claude src/以下の全ファイルにTypeScriptの型をつけて
+.claude components/Header.tsx のバグを直して
 .ls
 .cd my-project
 .read README.md
 .read README.md 2
 ```
 
-## Configuration
+## 設定項目 / Configuration
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SLACK_BOT_TOKEN` | required | Bot User OAuth Token |
-| `SLACK_CHANNEL_ID` | required | Channel to monitor |
-| `POLL_INTERVAL_MS` | `5000` | Polling interval in ms |
-| `OUTPUT_DIR` | `~/Desktop` | Initial working directory |
-| `CLAUDE_PATH` | auto-detect | Path to claude binary |
+| 変数 | デフォルト | 説明 |
+|------|-----------|------|
+| `SLACK_BOT_TOKEN` | 必須 | Bot User OAuth Token |
+| `SLACK_CHANNEL_ID` | 必須 | 監視するチャンネルID |
+| `POLL_INTERVAL_MS` | `5000` | ポーリング間隔（ミリ秒） |
+| `OUTPUT_DIR` | `~/Desktop` | 初期作業ディレクトリ |
+| `CLAUDE_PATH` | 自動検出 | claudeコマンドのパス |
 
-## How it works
+## 仕組み / How it works
 
-The bot polls the Slack channel every 5 seconds for new messages starting with `.`. When it finds one, it runs Claude Code in the configured working directory and returns the output to Slack.
+5秒ごとにSlackチャンネルを監視し、`.`で始まるメッセージを検出するとClaude Codeを実行してその結果をSlackに返します。
 
-No webhooks or public URLs required — works entirely from your local machine.
+WebhookやパブリックURLは不要です。ローカルマシン上で完結します。
+
+The bot polls the Slack channel every 5 seconds for new messages starting with `.`. No webhooks or public URLs required.
 
 ## License
 
