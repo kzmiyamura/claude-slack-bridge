@@ -120,9 +120,10 @@ async function fetchLatestMessages(): Promise<any[]> {
   return (data.messages || []).reverse();
 }
 
-function runClaudeCode(prompt: string): Promise<string> {
+function runClaudeCode(prompt: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    let output = "";
+    let stdout = "";
+    let stderr = "";
     let lastReport = Date.now();
     let buffer = "";
 
@@ -144,7 +145,7 @@ function runClaudeCode(prompt: string): Promise<string> {
 
     proc.stdout.on("data", async (data: Buffer) => {
       const text = data.toString();
-      output += text;
+      stdout += text;
       buffer += text;
       console.log(text);
 
@@ -157,15 +158,17 @@ function runClaudeCode(prompt: string): Promise<string> {
     });
 
     proc.stderr.on("data", (data: Buffer) => {
-      console.error(data.toString());
+      const text = data.toString();
+      stderr += text;
+      console.error(text);
     });
 
     proc.on("close", () => {
-      resolve(output.trim());
+      resolve({ stdout: stdout.trim(), stderr: stderr.trim() });
     });
 
     proc.on("error", (err) => {
-      resolve(`エラーが発生しました: ${err.message}`);
+      resolve({ stdout: "", stderr: `エラーが発生しました: ${err.message}` });
     });
   });
 }
@@ -290,14 +293,22 @@ async function poll(): Promise<void> {
           console.log(`✉️  新しい指示: ${prompt}`);
           await postToSlack(`⏳ 承りました！\n*指示:* ${prompt}\n*作業ディレクトリ:* \`${currentDir}\`\n\nClaude Codeが作業中です...`);
 
-          const result = await runClaudeCode(prompt);
+          const { stdout, stderr } = await runClaudeCode(prompt);
 
           const maxLength = 2900;
-          const reply = result.length > maxLength
-            ? result.slice(0, maxLength) + "\n\n...(省略されました)"
-            : result;
-
-          await postToSlack(`✅ 完了しました！\n\`\`\`\n${reply}\n\`\`\``);
+          if (stdout) {
+            const reply = stdout.length > maxLength
+              ? stdout.slice(0, maxLength) + "\n\n...(省略されました)"
+              : stdout;
+            await postToSlack(`✅ 完了しました！\n\`\`\`\n${reply}\n\`\`\``);
+          } else if (stderr) {
+            const errMsg = stderr.length > maxLength
+              ? stderr.slice(0, maxLength) + "\n\n...(省略されました)"
+              : stderr;
+            await postToSlack(`❌ エラーが発生しました\n\`\`\`\n${errMsg}\n\`\`\``);
+          } else {
+            await postToSlack(`✅ 完了しました！（出力なし）`);
+          }
           console.log("✅ 完了！結果をSlackに送信しました。");
           continue;
         }
